@@ -8,8 +8,8 @@ import java.util.Random;
  * The fitness value is the number of most 1s in the genome. The maximum fitness is 11111.
  * The least fitness is 00000.
  * This genetic algorithm program tries to maximize the fitness function to provide a population
- * consisting of the fittestUnit individual.
- * Note: after crossover and mutation, the least fit individual is replaced from the new fittestUnit offspring.
+ * consisting of the dad individual.
+ * Note: after crossover and mutation, the least fit individual is replaced from the new dad offspring.
  * PseudoCode: -->
  * START oo
  *  Generate the initial population
@@ -33,8 +33,8 @@ import java.util.Random;
 public class SimpleDemoGA {
      // genetic algorithm
     Population population = new Population();
-    Individual fittestUnit;
-    Individual secondFittestUnit;
+    Individual dad;
+    Individual mom;
     int generationCount = 0;
 
     public static void main(String[] args) {
@@ -42,19 +42,19 @@ public class SimpleDemoGA {
         Random rand = new Random();
         SimpleDemoGA demo = new SimpleDemoGA();
 
-        //Initialize population
+        //Initialize population , all with 0 fitness
         demo.population.initializePopulation(10);
 
         //Calculate fitness of each individual
-        demo.population.calculateFitness();  // this method update the fittest value in the population
+        demo.population.calculateFitness();  // this method update the father_Fit_Score value in the population
 
-        System.out.println("Generation: " + demo.generationCount + " Fittest: " + demo.population.fittest);
+        System.out.println("Generation: " + demo.generationCount + " Fittest: " + demo.population.father_Fit_Score);
 
-        /////// OOOO If the population fittest is less than 5, repeating the FIND PARENTS -> EXCHANGE GEENS -> MUTATE GENES -> ADD FITTEST OFFSPRINGS -> GET NEW FITTEST VALUE
-        while (demo.population.fittest < 5) { // keep on repeating new generation till it can get a fittest of 5 individual
+        /////// OOOO If the population father_Fit_Score is less than 5, repeating the FIND PARENTS -> EXCHANGE GEENS -> MUTATE GENES -> ADD FITTEST OFFSPRINGS -> GET NEW FITTEST VALUE
+        while (demo.population.father_Fit_Score < 5) { // keep on repeating new generation till it can get a father_Fit_Score of 5 individual
             ++demo.generationCount;
 
-            //Select parents
+            //each loop will have its own dad and mom
             demo.selection();
 
             // Exchange genes among parents up till crossOverPoint
@@ -67,52 +67,51 @@ public class SimpleDemoGA {
                 demo.mutation();   // flip between 0 and 1 at randomly selected index for both parents
             }
 
-            //Add fittestUnit offspring to population
+            //Add dad offspring to population
             demo.addFittestOffspring();
 
             //Calculate new fitness value
-            demo.population.calculateFitness(); /// this method will update fittest of individual
+            demo.population.calculateFitness(); /// this method will update father_Fit_Score of individual
 
-            System.out.println("Generation: " + demo.generationCount + " Fittest: " + demo.population.fittest);
+            System.out.println("Generation: " + demo.generationCount + " Fittest: " + demo.population.father_Fit_Score);
             System.out.println();
         }
 
       //  System.out.println("\nSolution found in generation " + demo.generationCount);
-        System.out.println("Fitness: "+demo.population.getFittest().fitness);
+        System.out.println("Fitness: "+demo.population.getTheFather().fitness);
         System.out.print("Genes: ");
         for (int i = 0; i < 5; i++) {
-            System.out.print(demo.population.getFittest().genes[i]);
+            System.out.print(demo.population.getTheFather().genes[i]);
         }
 
         System.out.println("");
 
     }
 
-    //Selection - select the first two fittest individuals
+    //Selection - select the first two father_Fit_Score individualArray
     void selection() {
 
-        //Select the most fittestUnit individual
-        fittestUnit = population.getFittest();
+        //Select the most dad individual
+        dad = population.getTheFather();
 
-        //Select the second most fittestUnit individual
-        secondFittestUnit = population.getSecondFittest();
+        //Select the second most dad individual
+        mom = population.getTheMother();
     }
 
     //Crossover - exchange digits among the parents til the crossOverPoint
     void crossover() {
         Random rn = new Random();
-
+//        System.out.println("Before crossover");
+//        System.out.println("father is "+ );
         //Select a random crossover point
-        int crossOverPoint = rn.nextInt(population.individuals[0].geneLength); // bounded by the length of gene
-
-        //Swap values among parents
+        int crossOverPoint = rn.nextInt(population.individualArray[0].geneLength); // bounded by the length of gene
+        System.out.println("CrossPoint "+ crossOverPoint);
+        //Swap values among parents , after this both dad and mom individuals have been changed
         for (int i = 0; i < crossOverPoint; i++) {
-            int temp = fittestUnit.genes[i];
-            fittestUnit.genes[i] = secondFittestUnit.genes[i];
-            secondFittestUnit.genes[i] = temp;
-
+            int temp = dad.genes[i];
+            dad.genes[i] = mom.genes[i];
+            mom.genes[i] = temp;
         }
-
     }
 
     //Mutation  - swap 0 to 1 and vice verse for the random index selected for both parents.
@@ -120,45 +119,53 @@ public class SimpleDemoGA {
         Random rn = new Random();
 
         //Select a random mutation point
-        int mutationPoint = rn.nextInt(population.individuals[0].geneLength);
+        int mutationPoint = rn.nextInt(population.individualArray[0].geneLength);
 
         //Flip values at the mutation point
-        if (fittestUnit.genes[mutationPoint] == 0) {
-            fittestUnit.genes[mutationPoint] = 1;
+        if (dad.genes[mutationPoint] == 0) {
+            dad.genes[mutationPoint] = 1;
         } else {
-            fittestUnit.genes[mutationPoint] = 0;
+            dad.genes[mutationPoint] = 0;
         }
 
-        mutationPoint = rn.nextInt(population.individuals[0].geneLength);
+        mutationPoint = rn.nextInt(population.individualArray[0].geneLength);
 
-        if (secondFittestUnit.genes[mutationPoint] == 0) {
-            secondFittestUnit.genes[mutationPoint] = 1;
+        if (mom.genes[mutationPoint] == 0) {
+            mom.genes[mutationPoint] = 1;
         } else {
-            secondFittestUnit.genes[mutationPoint] = 0;
+            mom.genes[mutationPoint] = 0;
         }
     }
 
-    //Get fittestUnit offspring
+    //Get dad offspring
     Individual getFittestOffspring() {
-        if (fittestUnit.fitness > secondFittestUnit.fitness) {
-            return fittestUnit;
+        if (dad.fitness > mom.fitness) {
+            return dad;
         }
-        return secondFittestUnit;
+        return mom;
     }
 
 
-    //Replace least fittestUnit individual from most fittestUnit offspring
+    //Replace least dad individual from most dad offspring
     void addFittestOffspring() {
 
-        //Update fitness values of offspring
-        fittestUnit.calcFitness();
-        secondFittestUnit.calcFitness();
+        //Update fitness values of new dad and mom after crossOver and mutation
+        dad.calcFitness();
+        mom.calcFitness();
 
-        //Get index of least fit individual
-        int leastFittestIndex = population.getLeastFittestIndex();
+        //Get index of least fit individual among the updated individual array
+        int leastFittestIndex = population.getLeastFitPersonIndex();
 
-        //Replace least fittestUnit individual from most fittestUnit offspring
-        population.individuals[leastFittestIndex] = getFittestOffspring();
+        //Replace least fit individual with the better new Parent
+        population.individualArray[leastFittestIndex] = getFittestOffspring();
+//        for (Individual i: population.individualArray) {
+//
+//            for(int j: i.genes){
+//                System.out.print(j);
+//            }
+//            System.out.println();
+//        }
+//        System.out.println(" End ");
     }
 
 }
@@ -172,7 +179,7 @@ class Individual {
     int fitness;
     int[] genes = new int[5];
     int geneLength = 5;
-    // constructor to create random genes
+    // constructor to create random genes of 5 digits and 0 fitness
     public Individual() {
         Random rn = new Random();
 
@@ -180,11 +187,10 @@ class Individual {
         for (int i = 0; i < genes.length; i++) {
             genes[i] = Math.abs(rn.nextInt() % 2); // absolute value of 0 and 1;
         }
-
         fitness = 0;
     }
 
-    //Calculate fitness
+    //callig this -  now this individual's fitness is updated
     public void calcFitness() {
         // TODO: reset fitness to 0 ????
         fitness = 0;
@@ -198,69 +204,71 @@ class Individual {
 
 //Population class
 class Population {
+    int fatherIndex;
 
    // int popSize;
-   Individual[] individuals;
-    int fittest = 0;
+   Individual[] individualArray;
+    int father_Fit_Score = 0;
 
     //Initialize population
-    // lazily start Population as an Array of Individual with a specified sizes
+    // lazily start Population as an Array of Individual with a specified sizes , all fitness are set to 0 to start
     public void initializePopulation(int size) {
-        individuals = new Individual[size];
-        for (int i = 0; i < individuals.length; i++) {
-            individuals[i] = new Individual();
+        individualArray = new Individual[size];
+        for (int i = 0; i < individualArray.length; i++) {
+            individualArray[i] = new Individual();
         }
     }
 
-    //Get the fittestUnit individual
-    public Individual getFittest() {
-        int maxFit = Integer.MIN_VALUE;
+    //calling this update 3 variables - father_fit_Score, fatherIndex and the father individual is returned
+    public Individual getTheFather() {
+        int maxFitness = Integer.MIN_VALUE;
         int maxFitIndex = 0;
-        for (int i = 0; i < individuals.length; i++) {
-            if (maxFit <= individuals[i].fitness) {
-                maxFit = individuals[i].fitness;
+        for (int i = 0; i < individualArray.length; i++) {
+            if (maxFitness <= individualArray[i].fitness) {
+                maxFitness = individualArray[i].fitness;
                 maxFitIndex = i;
             }
         }
-        fittest = individuals[maxFitIndex].fitness;
-        return individuals[maxFitIndex];
+        father_Fit_Score = individualArray[maxFitIndex].fitness;
+        fatherIndex = maxFitIndex;
+        return individualArray[maxFitIndex];
     }
 
-    //Get the second most fittestUnit individual
-    public Individual getSecondFittest() {
+    //Get the second most dad individual
+    public Individual getTheMother() {
         int maxFit1 = 0;
         int maxFit2 = 0;
-        for (int i = 0; i < individuals.length; i++) {
-            if (individuals[i].fitness > individuals[maxFit1].fitness) {
-                maxFit2 = maxFit1;
-                maxFit1 = i;
-            } else if (individuals[i].fitness > individuals[maxFit2].fitness) {
+        for (int i = 0; i < individualArray.length; i++) {
+            if (individualArray[i].fitness > individualArray[maxFit1].fitness) {
+                maxFit2 = maxFit1; // hand out father index to mother,
+                maxFit1 = i;   // father use the bigger value of this index
+            } else if (individualArray[i].fitness > individualArray[maxFit2].fitness) {
                 maxFit2 = i;
             }
         }
-        return individuals[maxFit2];
+        return individualArray[maxFit2];
     }
 
-    //Get index of least fittestUnit individual
-    public int getLeastFittestIndex() {
+    //Get index of least dad individual
+    public int getLeastFitPersonIndex() {
         int minFitVal = Integer.MAX_VALUE;
         int minFitIndex = 0;
-        for (int i = 0; i < individuals.length; i++) {
-            if (minFitVal >= individuals[i].fitness) {
-                minFitVal = individuals[i].fitness;
+        for (int i = 0; i < individualArray.length; i++) {
+            if (minFitVal >= individualArray[i].fitness) {
+                minFitVal = individualArray[i].fitness;
                 minFitIndex = i;
             }
         }
         return minFitIndex;
     }
 
-    //Calculate fitness of each individual
+    //Calculate fitness of each individual and find which individual is the father
     public void calculateFitness() {
 
-        for (int i = 0; i < individuals.length; i++) {
-            individuals[i].calcFitness();
+        for (int i = 0; i < individualArray.length; i++) {
+            individualArray[i].calcFitness();  // update each fitness, so that individualArray[i].fitness has values other than 0.
         }
-        getFittest();
+        getTheFather();
     }
 
 }
